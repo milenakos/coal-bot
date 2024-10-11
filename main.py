@@ -2,11 +2,12 @@ import asyncio
 import os
 import random
 import time
+from typing import Optional
 
 import discord
 from discord.ext import commands
 
-from database import db, Profile, Channel
+from database import Channel, Profile, db
 
 if os.name != "nt":
     import uvloop
@@ -119,6 +120,26 @@ async def forcespawn(message):
 
     await message.response.send_message("ok, spawned.")
     await spawn_coal(message.channel)
+
+
+@bot.tree.command(description="View a profile!")
+async def profile(message, user: Optional[discord.User]):
+    if not user:
+        user = message.user
+
+    profile, _ = Profile.get_or_create(guild_id=message.guild.id, user_id=user.id)
+    embed = discord.Embed(
+        title=f"{user}'s Profile",
+        description=f"Total clicks:{profile.clicks}\nTotal contributions:{profile.contributions}"
+    ).add_field(
+        name="Tokens",
+        value=profile.tokens
+    ).add_field(
+        name="Pickaxe",
+        value=profile.pickaxe
+    )
+
+    await message.response.send_message(embed=embed)
 
 
 async def wait_and_spawn(channel):
