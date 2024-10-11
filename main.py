@@ -130,13 +130,8 @@ async def profile(message, user: Optional[discord.User]):
     profile, _ = Profile.get_or_create(guild_id=message.guild.id, user_id=user.id)
     embed = discord.Embed(
         title=f"{user}'s Profile",
-        description=f"Total clicks:{profile.clicks}\nTotal contributions:{profile.contributions}"
-    ).add_field(
-        name="Tokens",
-        value=profile.tokens
-    ).add_field(
-        name="Pickaxe",
-        value=profile.pickaxe
+        description=f"Tokens: {profile.tokens}\nPickaxe: {profile.pickaxe}\nTotal clicks: {profile.clicks}\nTotal contributions: {profile.contributions}",
+        color=0x4C88BB
     )
 
     await message.response.send_message(embed=embed)
