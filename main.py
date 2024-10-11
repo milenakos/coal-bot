@@ -47,13 +47,13 @@ async def mine(user):
 
 @bot.event
 async def on_raw_reaction_remove(payload):
-    if coal_msg and payload.message_id == coal_msg.id and "⛏" in str(payload.emoji):
+    if coal_msg and payload.message_id == coal_msg.id and "⛏" in str(payload.emoji) and payload.user_id != bot.user.id:
         await mine(payload.user_id)
 
 
 @bot.event
 async def on_raw_reaction_add(payload):
-    if coal_msg and payload.message_id == coal_msg.id and "⛏" in str(payload.emoji):
+    if coal_msg and payload.message_id == coal_msg.id and "⛏" in str(payload.emoji) and payload.user_id != bot.user.id:
         await mine(payload.user_id)
 
 async def spawn_coal(message):
