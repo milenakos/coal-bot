@@ -60,6 +60,19 @@ async def finish_mining(channel_id):
     if not isinstance(coal_save, discord.Message):
         return
     coal_msg[channel_id] = None
+
+    to_save = []
+
+    for user_id, amount in contributors[channel_id]:
+        user, _ = Profile.get_or_create(guild_id=coal_save.guild.id, user_id=user_id)
+        user.contributions += 1
+        user.clicks += amount
+        user.tokens += amount
+        to_save.append(user)
+
+    with db.atomic():
+        Profile.bulk_update(to_save, fields=[Profile.contributions, Profile.clicks, Profile.tokens], batch_size=50)
+
     contributors_list = "\n".join([f"<@{k}> - {v}" for k, v in sorted(contributors[channel_id].items(), key=lambda item: item[1], reverse=True)])
     await coal_save.edit(content=f":pick: Coal mined successfully! It took {round(time.time() - start[channel_id])} seconds! These people helped:\n{contributors_list}")
     return coal_save.channel
@@ -97,23 +110,30 @@ async def setup(message):
     await spawn_coal(message.channel)
 
 
+async def wait_and_spawn(channel):
+    time_left = channel.yet_to_spawn - time.time()
+    if time_left > 0:
+        await asyncio.sleep(time_left)
+    await spawn_coal(bot.get_channel(channel.channel_id))
+
+
 @bot.event
 async def on_ready():
     print("online")
     await bot.tree.sync()
-    for channel in Channel.select().where(0 < Channel.yet_to_spawn < time.time()):
-        await spawn_coal(bot.get_channel(channel.channel_id))
+    for channel in Channel.select():
+        bot.loop.create_task(wait_and_spawn(channel))
 
 
 @bot.event
 async def on_raw_reaction_remove(payload):
-    if coal_msg[payload.channel_id] and payload.message_id == coal_msg[payload.channel_id].id and str(payload.emoji) == "⛏" and payload.user_id != bot.user.id:
+    if coal_msg.get(payload.channel_id, False) and payload.message_id == coal_msg[payload.channel_id].id and str(payload.emoji) == "⛏" and payload.user_id != bot.user.id:
         await mine(payload)
 
 
 @bot.event
 async def on_raw_reaction_add(payload):
-    if coal_msg[payload.channel_id] and payload.message_id == coal_msg[payload.channel_id].id and payload.user_id != bot.user.id:
+    if coal_msg.get(payload.channel_id, False) and payload.message_id == coal_msg[payload.channel_id].id and payload.user_id != bot.user.id:
         if str(payload.emoji) == "⛏":
             await mine(payload)
         else:
