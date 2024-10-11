@@ -121,8 +121,30 @@ async def forcespawn(message):
         await message.response.send_message("bruh you already setup a coal here are you dumb")
         return
 
+    if not Channel.get_or_none(channel_id=message.channel.id):
+        await message.response.send_message("bruh this isnt a mine are you dumb")
+        return
+
     await message.response.send_message("ok, spawned.")
     await spawn_coal(message.channel)
+
+
+@bot.tree.command(description="(ADMIN) changes some server settings (everything is optional)")
+@discord.app_commands.default_permissions(manage_guild=True)
+async def changesettings(message, minimum_time: int, maximum_time: int, hardness_multiplier: float):
+    if not Channel.get_or_none(channel_id=message.channel.id):
+        await message.response.send_message("bruh this isnt a mine are you dumb")
+        return
+
+    ch = Channel.get(message.channel.id)
+    if minimum_time and minimum_time >= 20:
+        ch.spawn_times_min = minimum_time
+    if maximum_time and maximum_time >= ch.spawn_times_min:
+        ch.spawn_times_max = maximum_time
+    if hardness_multiplier and hardness_multiplier >= 0:
+        ch.hardness_multipler = hardness_multiplier
+
+    await message.response.send_message("ok, settings saved.")
 
 
 @bot.tree.command(description="View a profile!")
