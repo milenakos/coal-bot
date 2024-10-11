@@ -51,7 +51,7 @@ async def spawn_coal(channel):
     ch.yet_to_spawn = 0
     ch.save()
     start[channel.id] = time.time()
-    counter[channel.id] = random.randint(250, 750) * ch.hardness_multipler
+    counter[channel.id] = round(random.randint(250, 750) * ch.hardness_multipler)
     contributors[channel.id] = {}
     last_update_time[channel.id] = time.time()
     coal_msg[channel.id] = await channel.send(f"<@&1294332417301286912> <:coal:1294300130014527498> A wild coal has appeared! Spam :pick: reaction to mine it! ({counter[channel.id]})")
@@ -112,6 +112,16 @@ async def setup(message):
     Channel.create(channel_id=message.channel.id)
     await message.response.send_message(f"ok, now i will also send coals in <#{message.channel.id}>")
     await spawn_coal(message.channel)
+
+
+@bot.tree.command(description="(ADMIN) Undo the setup")
+@discord.app_commands.default_permissions(manage_guild=True)
+async def forget(message: discord.Interaction):
+    if channel := Channel.get_or_none(channel_id=message.channel.id):
+        channel.delete_instance()
+        await message.response.send_message(f"ok, now <#{message.channel.id}> is no longer a mine")
+    else:
+        await message.response.send_message("your an idiot there is literally no mine setupped in this channel you stupid")
 
 
 @bot.tree.command(description="(ADMIN) Forcespawn a coal")
