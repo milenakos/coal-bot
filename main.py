@@ -51,7 +51,7 @@ async def spawn_coal(channel):
     ch.yet_to_spawn = 0
     ch.save()
     start[channel.id] = time.time()
-    counter[channel.id] = random.randint(250, 750)
+    counter[channel.id] = random.randint(250, 750) * ch.hardness_multipler
     contributors[channel.id] = {}
     last_update_time[channel.id] = time.time()
     coal_msg[channel.id] = await channel.send(f"<@&1294332417301286912> <:coal:1294300130014527498> A wild coal has appeared! Spam :pick: reaction to mine it! ({counter[channel.id]})")
@@ -131,7 +131,7 @@ async def forcespawn(message):
 
 @bot.tree.command(description="(ADMIN) changes some server settings (everything is optional)")
 @discord.app_commands.default_permissions(manage_guild=True)
-async def changesettings(message, minimum_time: int, maximum_time: int, hardness_multiplier: float):
+async def changesettings(message, minimum_time: int, maximum_time: int, toughness_multiplier: float):
     if not Channel.get_or_none(channel_id=message.channel.id):
         await message.response.send_message("bruh this isnt a mine are you dumb")
         return
@@ -141,8 +141,8 @@ async def changesettings(message, minimum_time: int, maximum_time: int, hardness
         ch.spawn_times_min = minimum_time
     if maximum_time and maximum_time >= ch.spawn_times_min:
         ch.spawn_times_max = maximum_time
-    if hardness_multiplier and hardness_multiplier >= 0:
-        ch.hardness_multipler = hardness_multiplier
+    if toughness_multiplier and toughness_multiplier >= 0:
+        ch.hardness_multipler = toughness_multiplier
     ch.save()
 
     await message.response.send_message("ok, settings saved.")
