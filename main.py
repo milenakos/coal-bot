@@ -18,7 +18,7 @@ class CleanupClient(commands.AutoShardedBot):
         super().__init__(*args, **kwargs)
 
     async def close(self):
-        for i in coal_msg:
+        for i in coal_msg.values():
             if i:
                 await finish_mining(i.channel.id)
 
