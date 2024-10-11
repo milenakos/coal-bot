@@ -110,6 +110,17 @@ async def setup(message):
     await spawn_coal(message.channel)
 
 
+@bot.tree.command(description="(ADMIN) Forcespawn a coal")
+@discord.app_commands.default_permissions(manage_guild=True)
+async def forcespawn(message):
+    if coal_msg.get(message.channel.id, None):
+        await message.response.send_message("bruh you already setup a coal here are you dumb")
+        return
+
+    await message.response.send_message("ok, spawned.")
+    await spawn_coal(message.channel)
+
+
 async def wait_and_spawn(channel):
     time_left = channel.yet_to_spawn - time.time()
     if time_left > 0:
