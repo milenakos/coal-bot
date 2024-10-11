@@ -37,7 +37,7 @@ async def mine(user):
         await asyncio.sleep(random.randint(300, 600))
         await spawn_coal(coal_save)
         return
-    if last_update_time + 10 > time.time():
+    if last_update_time + 5 > time.time():
         return
 
     last_update_time = time.time()
