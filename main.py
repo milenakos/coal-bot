@@ -9,6 +9,7 @@ import uvloop
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 intents = discord.Intents.default()
+intents.message_content = True
 bot = discord.Client(intents=intents)
 
 
