@@ -166,7 +166,7 @@ async def leaderboards(message: discord.Interaction, leaderboard_type: Optional[
             result = (Profile
                 .select(Profile.user_id, Profile.tokens.alias("final_value"))
                 .where(Profile.guild_id == message.guild.id)
-                .group_by(Profile.user_id)
+                .group_by(Profile.user_id, Profile.tokens)
                 .order_by(Profile.tokens.desc())
             ).execute()
         else:
