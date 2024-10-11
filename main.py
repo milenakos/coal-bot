@@ -41,7 +41,7 @@ async def mine(user):
         return
 
     last_update_time = time.time()
-    await coal_msg.edit(content=f"<@&1294332417301286912> <:coal:1294300130014527498> A wild coal has appeared! Spam :pick: reaction to mine it! ({counter})")
+    await coal_msg.edit(content=f"<:coal:1294300130014527498> A wild coal has appeared! Spam :pick: reaction to mine it! ({counter})")
 
 
 
