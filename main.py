@@ -129,9 +129,12 @@ async def profile(message, user: Optional[discord.User]):
 
     profile, _ = Profile.get_or_create(guild_id=message.guild.id, user_id=user.id)
     embed = discord.Embed(
-        title=f"{user}'s Profile",
-        description=f"Tokens: {profile.tokens}\nPickaxe: {profile.pickaxe}\nTotal clicks: {profile.clicks}\nTotal contributions: {profile.contributions}",
+        title=f"{profile.tokens} tokens",
+        description=f"**Pickaxe**: {profile.pickaxe}\n\nTotal clicks: {profile.clicks}\nTotal contributions: {profile.contributions}",
         color=0x4C88BB
+    ).set_author(
+        name=str(user),
+        icon_url=user.avatar.url
     )
 
     await message.response.send_message(embed=embed)
