@@ -57,14 +57,14 @@ async def on_ready():
 
 @bot.event
 async def on_raw_reaction_remove(payload):
-    if coal_msg and payload.message_id == coal_msg.id and "⛏" in str(payload.emoji) and payload.user_id != bot.user.id:
+    if coal_msg and payload.message_id == coal_msg.id and str(payload.emoji) == "⛏" and payload.user_id != bot.user.id:
         await mine(payload)
 
 
 @bot.event
 async def on_raw_reaction_add(payload):
     if coal_msg and payload.message_id == coal_msg.id and payload.user_id != bot.user.id:
-        if "⛏" in str(payload.emoji):
+        if str(payload.emoji) == "⛏":
             await mine(payload)
         else:
             channel = bot.get_channel(payload.channel_id)
