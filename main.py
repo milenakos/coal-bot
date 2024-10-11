@@ -158,6 +158,14 @@ async def changesettings(message, minimum_time: int, maximum_time: int, toughnes
     await message.response.send_message("ok, settings saved.")
 
 
+@bot.tree.command(description="Eat a coal.")
+async def eat(message):
+    profile, _ = Profile.get_or_create(guild_id=message.guild.id, user_id=message.user.id)
+    profile.tokens -= 1
+    profile.save()
+    await message.response.send_message("You eat a coal. Yum!")
+
+
 @bot.tree.command(description="View a profile!")
 async def profile(message, user: Optional[discord.User]):
     if not user:
