@@ -63,7 +63,7 @@ async def finish_mining(channel_id):
 
     to_save = []
 
-    for user_id, amount in contributors[channel_id]:
+    for user_id, amount in contributors[channel_id].items():
         user, _ = Profile.get_or_create(guild_id=coal_save.guild.id, user_id=user_id)
         user.contributions += 1
         user.clicks += amount
