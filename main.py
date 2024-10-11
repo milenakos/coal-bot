@@ -2,10 +2,13 @@ import asyncio
 import os
 import random
 import time
-from typing import Optional
+from typing import Optional, Literal
 
 import discord
+import peewee
+from discord import ButtonStyle
 from discord.ext import commands
+from discord.ui import Button, View
 
 from database import Channel, Profile, db
 
@@ -138,6 +141,114 @@ async def profile(message, user: Optional[discord.User]):
     )
 
     await message.response.send_message(embed=embed)
+
+
+@bot.tree.command(description="View the leaderboards")
+@discord.app_commands.rename(leaderboard_type="type")
+@discord.app_commands.describe(leaderboard_type="The leaderboard type to view!")
+async def leaderboards(message: discord.Interaction, leaderboard_type: Optional[Literal["Tokens"]]):
+    if not leaderboard_type:
+        leaderboard_type = "Tokens"
+
+    # this fat function handles a single page
+    async def lb_handler(interaction, type, do_edit=None):
+        nonlocal message
+        if do_edit is None:
+            do_edit = True
+        await interaction.response.defer()
+
+        messager = None
+        interactor = None
+        string = ""
+        if type == "Tokens":
+            unit = "tokens"
+            # run the query
+            result = (Profile
+                .select(Profile.user_id, Profile.tokens.alias("final_value"))
+                .where(Profile.guild_id == message.guild.id)
+                .group_by(Profile.user_id)
+                .order_by(Profile.tokens.desc())
+            ).execute()
+        else:
+            # qhar
+            return
+
+        # find the placement of the person who ran the command and optionally the person who pressed the button
+        interactor_placement = 0
+        messager_placement = 0
+        for index, position in enumerate(result):
+            if position.user_id == interaction.user.id:
+                interactor_placement = index
+                interactor = position.final_value
+            if interaction.user != message.user and position.user_id == message.user.id:
+                messager_placement = index
+                messager = position.final_value
+
+        # dont show placements if they arent defined
+        if interactor:
+            if interactor <= 0:
+                interactor_placement = 0
+            interactor = round(interactor)
+
+        if messager:
+            if messager <= 0:
+                messager_placement = 0
+            messager = round(messager)
+
+        # the little place counter
+        current = 1
+        for i in result[:15]:
+            num = i.final_value
+            if num <= 0:
+                break
+            string = string + f"{current}. {num:,} {unit}: <@{i.user_id}>\n"
+            current += 1
+
+        # add the messager and interactor
+        # todo: refactor this
+        if messager_placement > 15 or interactor_placement > 15:
+            string = string + "...\n"
+            # sort them correctly!
+            if messager_placement > interactor_placement:
+                # interactor should go first
+                if interactor_placement > 15 and str(interaction.user.id) not in string:
+                    string = string + f"{interactor_placement}\\. {interactor:,} {unit}: <@{interaction.user.id}>\n"
+                if messager_placement > 15 and str(message.user.id) not in string:
+                    string = string + f"{messager_placement}\\. {messager:,} {unit}: <@{message.user.id}>\n"
+            else:
+                # messager should go first
+                if messager_placement > 15 and str(message.user.id) not in string:
+                    string = string + f"{messager_placement}\\. {messager:,} {unit}: <@{message.user.id}>\n"
+                if interactor_placement > 15 and str(interaction.user.id) not in string:
+                    string = string + f"{interactor_placement}\\. {interactor:,} {unit}: <@{interaction.user.id}>\n"
+
+        embedVar = discord.Embed(
+                title=f"{type} Leaderboards:", description=string.rstrip(), color=0x4C88BB
+        )
+
+        # handle funny buttons
+        if type == "Tokens":
+            button1 = Button(label="Refresh", style=ButtonStyle.green)
+        else:
+            button1 = Button(label="Tokens", style=ButtonStyle.blurple)
+
+        button1.callback = tokenlb
+
+        myview = View(timeout=3600)
+        myview.add_item(button1)
+
+        # just send if first time, otherwise edit existing
+        try:
+            if not do_edit:
+                raise Exception
+            await interaction.edit_original_response(embed=embedVar, view=myview)
+        except Exception:
+            await interaction.followup.send(embed=embedVar, view=myview)
+
+    async def tokenlb(interaction):
+        await lb_handler(interaction, "Tokens")
+
+    await lb_handler(message, leaderboard_type, False)
 
 
 async def wait_and_spawn(channel):
