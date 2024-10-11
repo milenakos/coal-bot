@@ -143,6 +143,7 @@ async def changesettings(message, minimum_time: int, maximum_time: int, hardness
         ch.spawn_times_max = maximum_time
     if hardness_multiplier and hardness_multiplier >= 0:
         ch.hardness_multipler = hardness_multiplier
+    ch.save()
 
     await message.response.send_message("ok, settings saved.")
 
