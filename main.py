@@ -37,6 +37,7 @@ bot = CleanupClient(command_prefix="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
                     chunk_guilds_at_startup=False)
 
 counter = {}
+counter_spawn = {}
 contributors = {}
 coal_msg = {}
 start = {}
@@ -44,14 +45,15 @@ last_update_time = {}
 
 
 async def spawn_coal(channel):
-    global counter, contributors, coal_msg, start, last_update_time
+    global counter, counter_spawn, contributors, coal_msg, start, last_update_time
     if coal_msg.get(channel.id, None):
         return
     ch = Channel.get(channel.id)
     ch.yet_to_spawn = 0
     ch.save()
     start[channel.id] = time.time()
-    counter[channel.id] = random.randint(250, 750)
+    counter_spawn[channel.id] = random.randint(250, 750)
+    counter[channel.id] = counter_spawn[channel.id]
     contributors[channel.id] = {}
     last_update_time[channel.id] = time.time()
     coal_msg[channel.id] = await channel.send(f"<@&1294332417301286912> <:coal:1294300130014527498> A wild coal has appeared! Spam :pick: reaction to mine it! ({counter[channel.id]})")
@@ -59,7 +61,7 @@ async def spawn_coal(channel):
 
 
 async def finish_mining(channel_id):
-    global coal_msg
+    global coal_msg, counter_spawn
     coal_save = coal_msg[channel_id]
     if not isinstance(coal_save, discord.Message):
         return
@@ -78,7 +80,7 @@ async def finish_mining(channel_id):
         Profile.bulk_update(to_save, fields=[Profile.contributions, Profile.clicks, Profile.tokens], batch_size=50)
 
     contributors_list = "\n".join([f"<@{k}> - {v}" for k, v in sorted(contributors[channel_id].items(), key=lambda item: item[1], reverse=True)])
-    await coal_save.edit(content=f":pick: Coal mined successfully! It took {round(time.time() - start[channel_id])} seconds! These people helped:\n{contributors_list}")
+    await coal_save.edit(content=f":pick: Coal mined successfully! It took {counter_spawn[channel.id]} pickaxe hits in {round(time.time() - start[channel_id])} seconds! These people helped:\n{contributors_list}")
     return coal_save.channel
 
 
@@ -146,7 +148,7 @@ async def profile(message, user: Optional[discord.User]):
 @bot.tree.command(description="View the leaderboards")
 @discord.app_commands.rename(leaderboard_type="type")
 @discord.app_commands.describe(leaderboard_type="The leaderboard type to view!")
-async def leaderboards(message: discord.Interaction, leaderboard_type: Optional[Literal["Tokens", "Clicks", "Contributions"]]):
+async def leaderboards(message: discord.Interaction, leaderboard_type: Optional[Literal["Tokens"]]):
     if not leaderboard_type:
         leaderboard_type = "Tokens"
 
@@ -168,24 +170,6 @@ async def leaderboards(message: discord.Interaction, leaderboard_type: Optional[
                 .where(Profile.guild_id == message.guild.id)
                 .group_by(Profile.user_id, Profile.tokens)
                 .order_by(Profile.tokens.desc())
-            ).execute()
-        elif type == "Clicks":
-            unit = "clicks"
-            # run the query
-            result = (Profile
-                .select(Profile.user_id, Profile.clicks.alias("final_value"))
-                .where(Profile.guild_id == message.guild.id)
-                .group_by(Profile.user_id, Profile.clicks)
-                .order_by(Profile.clicks.desc())
-            ).execute()
-        elif type == "Contributions":
-            unit = "contributions"
-            # run the query
-            result = (Profile
-                .select(Profile.user_id, Profile.contributions.alias("final_value"))
-                .where(Profile.guild_id == message.guild.id)
-                .group_by(Profile.user_id, Profile.contributions)
-                .order_by(Profile.contributions.desc())
             ).execute()
         else:
             # qhar
@@ -250,24 +234,10 @@ async def leaderboards(message: discord.Interaction, leaderboard_type: Optional[
         else:
             button1 = Button(label="Tokens", style=ButtonStyle.blurple)
 
-        if type == "Clicks":
-            button2 = Button(label="Refresh", style=ButtonStyle.green)
-        else:
-            button2 = Button(label="Clicks", style=ButtonStyle.blurple)
-
-        if type == "Contributions":
-            button3 = Button(label="Refresh", style=ButtonStyle.green)
-        else:
-            button3 = Button(label="Contributions", style=ButtonStyle.blurple)
-
         button1.callback = tokenlb
-        button2.callback = clickslb
-        button3.callback = contributionslb
 
         myview = View(timeout=3600)
         myview.add_item(button1)
-        myview.add_item(button2)
-        myview.add_item(button3)
 
         # just send if first time, otherwise edit existing
         try:
@@ -279,12 +249,6 @@ async def leaderboards(message: discord.Interaction, leaderboard_type: Optional[
 
     async def tokenlb(interaction):
         await lb_handler(interaction, "Tokens")
-
-    async def clickslb(interaction):
-        await lb_handler(interaction, "Clicks")
-
-    async def contributionslb(interaction):
-        await lb_handler(interaction, "Contributions")
 
     await lb_handler(message, leaderboard_type, False)
 
