@@ -146,7 +146,7 @@ async def profile(message, user: Optional[discord.User]):
 @bot.tree.command(description="View the leaderboards")
 @discord.app_commands.rename(leaderboard_type="type")
 @discord.app_commands.describe(leaderboard_type="The leaderboard type to view!")
-async def leaderboards(message: discord.Interaction, leaderboard_type: Optional[Literal["Tokens"]]):
+async def leaderboards(message: discord.Interaction, leaderboard_type: Optional[Literal["Tokens", "Clicks", "Contributions"]]):
     if not leaderboard_type:
         leaderboard_type = "Tokens"
 
@@ -168,6 +168,24 @@ async def leaderboards(message: discord.Interaction, leaderboard_type: Optional[
                 .where(Profile.guild_id == message.guild.id)
                 .group_by(Profile.user_id, Profile.tokens)
                 .order_by(Profile.tokens.desc())
+            ).execute()
+        elif type == "Clicks":
+            unit = "clicks"
+            # run the query
+            result = (Profile
+                .select(Profile.user_id, Profile.clicks.alias("final_value"))
+                .where(Profile.guild_id == message.guild.id)
+                .group_by(Profile.user_id, Profile.clicks)
+                .order_by(Profile.clicks.desc())
+            ).execute()
+        elif type == "Contributions":
+            unit = "contributions"
+            # run the query
+            result = (Profile
+                .select(Profile.user_id, Profile.contributions.alias("final_value"))
+                .where(Profile.guild_id == message.guild.id)
+                .group_by(Profile.user_id, Profile.contributions)
+                .order_by(Profile.contributions.desc())
             ).execute()
         else:
             # qhar
@@ -232,7 +250,19 @@ async def leaderboards(message: discord.Interaction, leaderboard_type: Optional[
         else:
             button1 = Button(label="Tokens", style=ButtonStyle.blurple)
 
+        if type == "Clicks":
+            button2 = Button(label="Refresh", style=ButtonStyle.green)
+        else:
+            button2 = Button(label="Clicks", style=ButtonStyle.blurple)
+
+        if type == "Contributions":
+            button3 = Button(label="Refresh", style=ButtonStyle.green)
+        else:
+            button3 = Button(label="Contributions", style=ButtonStyle.blurple)
+
         button1.callback = tokenlb
+        button2.callback = clickslb
+        button3.callback = contributionslb
 
         myview = View(timeout=3600)
         myview.add_item(button1)
@@ -247,6 +277,12 @@ async def leaderboards(message: discord.Interaction, leaderboard_type: Optional[
 
     async def tokenlb(interaction):
         await lb_handler(interaction, "Tokens")
+
+    async def clickslb(interaction):
+        await lb_handler(interaction, "Clicks")
+
+    async def contributionslb(interaction):
+        await lb_handler(interaction, "Contributions")
 
     await lb_handler(message, leaderboard_type, False)
 
