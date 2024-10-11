@@ -266,6 +266,8 @@ async def leaderboards(message: discord.Interaction, leaderboard_type: Optional[
 
         myview = View(timeout=3600)
         myview.add_item(button1)
+        myview.add_item(button2)
+        myview.add_item(button3)
 
         # just send if first time, otherwise edit existing
         try:
