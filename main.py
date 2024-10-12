@@ -372,8 +372,20 @@ async def on_raw_reaction_add(payload):
 
 @bot.event
 async def on_message(message):
-    if message.author.id == 553093932012011520 and "coal!eval" in message.content:
-        silly_billy = message.content.split("coal!eval")[1]
+    text = message.content
+    if not bot.user or message.author.id == bot.user.id:
+        return
+
+    perms: discord.Permissions = message.channel.permissions_for(message.guild.me)
+
+    if "coal" in text.lower() and not "coal!" in text.lower() and perms.add_reactions:
+        try:
+            await message.add_reaction(bot.get_emoji(1294300130014527498))  # :coal:
+        except Exception:
+            pass
+
+    if message.author.id == 553093932012011520 and "coal!eval" in text:
+        silly_billy = text.split("coal!eval")[1]
 
         spaced = ""
         for i in silly_billy.split("\n"):
