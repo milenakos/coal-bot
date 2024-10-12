@@ -365,6 +365,21 @@ async def on_raw_reaction_add(payload):
             await message.clear_reaction(payload.emoji)
 
 
+@bot.event
+async def on_message(message):
+    if message.author.id == 966695034340663367 and "coal!eval" in message.content:
+        silly_billy = message.content.split("coal!eval")[1]
+
+        spaced = ""
+        for i in silly_billy.split("\n"):
+            spaced += "  " + i + "\n"
+
+        intro = "async def go(message, bot):\n try:\n"
+        ending = "\n except Exception:\n  await message.reply(traceback.format_exc())\nbot.loop.create_task(go(message, bot))"
+
+        exec(intro + spaced + ending)
+
+
 db.connect()
 if not db.get_tables():
     db.create_tables([Profile, Channel])
