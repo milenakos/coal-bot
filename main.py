@@ -367,7 +367,7 @@ async def on_raw_reaction_add(payload):
 
 @bot.event
 async def on_message(message):
-    if message.author.id == 966695034340663367 and "coal!eval" in message.content:
+    if message.author.id == 553093932012011520 and "coal!eval" in message.content:
         silly_billy = message.content.split("coal!eval")[1]
 
         spaced = ""
