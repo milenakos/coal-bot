@@ -119,6 +119,11 @@ async def setup(message):
 async def forget(message: discord.Interaction):
     if channel := Channel.get_or_none(channel_id=message.channel.id):
         channel.delete_instance()
+        coal_msg.pop(channel.id, None)
+        start.pop(channel.id, None)
+        counter.pop(channel.id, None)
+        contributors.pop(channel.id, None)
+        last_update_time.pop(channel.id, None)
         await message.response.send_message(f"ok, now <#{message.channel.id}> is no longer a mine")
     else:
         await message.response.send_message("your an idiot there is literally no mine setupped in this channel you stupid")
