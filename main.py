@@ -364,7 +364,7 @@ async def on_ready():
     on_ready_debounce = True
 
     await bot.change_presence(
-        activity=discord.CustomActivity(name=f"Abusing miners in {len(bot.guilds):,} servers")
+        activity=discord.CustomActivity(name=f"Just restarted! Abusing miners in {len(bot.guilds):,} servers")
     )
 
     await bot.tree.sync()
