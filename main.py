@@ -6,7 +6,7 @@ from typing import Optional, Literal
 
 import discord
 import peewee
-from discord import ButtonStyle
+from discord import ButtonStyle, Game, MessageInteraction
 from discord.ext import commands
 from discord.ui import Button, View
 
@@ -42,6 +42,8 @@ coal_msg = {}
 start = {}
 last_update_time = {}
 
+on_ready_debounce = False
+last_loop_time = time.time()
 
 async def spawn_coal(channel):
     global counter, contributors, coal_msg, start, last_update_time
@@ -342,10 +344,31 @@ async def wait_and_spawn(channel):
     await spawn_coal(bot.get_channel(channel.channel_id))
 
 
+async def maintaince_loop():
+    global last_loop_time
+    last_loop_time = time.time()
+    await bot.change_presence(
+        activity=discord.CustomActivity(name=f"Abusing miners in {len(bot.guilds):,} servers")
+    )
+
+    for channel in Channel.select().where(0 < Channel.yet_to_spawn < time.time()):
+        await spawn_coal(bot.get_channel(channel.channel_id))
+        await asyncio.sleep(0.1)
+
 @bot.event
 async def on_ready():
+    global on_ready_debounce
     print("online")
+    if on_ready_debounce:
+        return
+    on_ready_debounce = True
+
+    await bot.change_presence(
+        activity=discord.CustomActivity(name=f"Abusing miners in {len(bot.guilds):,} servers")
+    )
+
     await bot.tree.sync()
+
     for channel in Channel.select():
         bot.loop.create_task(wait_and_spawn(channel))
 
@@ -372,6 +395,8 @@ async def on_raw_reaction_add(payload):
 
 @bot.event
 async def on_message(message):
+    if last_loop_time + 300 < time.time():
+        await maintaince_loop()
     if message.author.id == 553093932012011520 and "coal!eval" in message.content:
         silly_billy = message.content.split("coal!eval")[1]
 
