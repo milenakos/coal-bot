@@ -163,7 +163,7 @@ async def eat(message):
     profile, _ = Profile.get_or_create(guild_id=message.guild.id, user_id=message.user.id)
     profile.tokens -= 1
     profile.save()
-    await message.response.send_message(f"You eat a coal. Yum!\nYou now have {profile.tokens} coal remaining.")
+    await message.response.send_message(f"You eat a coal token. Yum!\nYou now have {profile.tokens} tokens remaining.")
 
 
 @bot.tree.command(description="View a profile!")
