@@ -158,7 +158,7 @@ async def changesettings(message, minimum_time: int, maximum_time: int, toughnes
     await message.response.send_message("ok, settings saved.")
 
 
-@bot.tree.command(description="Eat a coal.")
+@bot.tree.command(description="Eat a coal token.")
 async def eat(message):
     profile, _ = Profile.get_or_create(guild_id=message.guild.id, user_id=message.user.id)
     profile.tokens -= 1
