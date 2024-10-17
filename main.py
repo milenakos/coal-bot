@@ -6,7 +6,7 @@ from typing import Optional, Literal
 
 import discord
 import peewee
-from discord import ButtonStyle, Game, MessageInteraction
+from discord import ButtonStyle
 from discord.ext import commands
 from discord.ui import Button, View
 
@@ -47,7 +47,7 @@ last_loop_time = time.time()
 
 async def spawn_coal(channel):
     global counter, contributors, coal_msg, start, last_update_time
-    if coal_msg.get(channel.id, None):
+    if not channel or coal_msg.get(channel.id, None):
         return
     ch = Channel.get(channel.id)
     ch.yet_to_spawn = 0
@@ -56,7 +56,11 @@ async def spawn_coal(channel):
     counter[channel.id] = round(random.randint(250, 750) * ch.hardness_multipler)
     contributors[channel.id] = {}
     last_update_time[channel.id] = time.time()
-    coal_msg[channel.id] = await channel.send(f"<@&1294332417301286912> <:coal:1294300130014527498> A wild coal has appeared! Spam :pick: reaction to mine it! ({counter[channel.id]})")
+    try:
+        coal_msg[channel.id] = await channel.send(f"<@&1294332417301286912> <:coal:1294300130014527498> A wild coal has appeared! Spam :pick: reaction to mine it! ({counter[channel.id]})")
+    except Exception:
+        # fuck you
+        ch.delete_instance()
     await coal_msg[channel.id].add_reaction("⛏")
 
 
@@ -80,7 +84,11 @@ async def finish_mining(channel_id):
         Profile.bulk_update(to_save, fields=[Profile.contributions, Profile.clicks, Profile.tokens], batch_size=50)
 
     contributors_list = "\n".join([f"<@{k}> - {v}" for k, v in sorted(contributors[channel_id].items(), key=lambda item: item[1], reverse=True)])
-    await coal_save.edit(content=f":pick: Coal mined successfully! It took {round(time.time() - start[channel_id])} seconds! These people helped:\n{contributors_list}")
+    try:
+        await coal_save.edit(content=f":pick: Coal mined successfully! It took {round(time.time() - start[channel_id])} seconds! These people helped:\n{contributors_list}")
+    except Exception:
+        # yk i hate you
+        pass
     return coal_save.channel
 
 
@@ -121,11 +129,11 @@ async def setup(message):
 async def forget(message: discord.Interaction):
     if channel := Channel.get_or_none(channel_id=message.channel.id):
         channel.delete_instance()
-        coal_msg.pop(channel.id, None)
-        start.pop(channel.id, None)
-        counter.pop(channel.id, None)
-        contributors.pop(channel.id, None)
-        last_update_time.pop(channel.id, None)
+        coal_msg.pop(channel.channel_id, None)
+        start.pop(channel.channel_id, None)
+        counter.pop(channel.channel_id, None)
+        contributors.pop(channel.channel_id, None)
+        last_update_time.pop(channel.channel_id, None)
         await message.response.send_message(f"ok, now <#{message.channel.id}> is no longer a mine")
     else:
         await message.response.send_message("your an idiot there is literally no mine setupped in this channel you stupid")
