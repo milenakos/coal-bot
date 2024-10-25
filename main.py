@@ -93,14 +93,26 @@ async def finish_mining(channel_id):
         to_save.append(user)
 
     with db.atomic():
-        Profile.bulk_update(to_save, fields=[Profile.contributions, Profile.clicks, Profile.tokens], batch_size=50)
+        Profile.bulk_update(
+            to_save, 
+            fields=[Profile.contributions, Profile.clicks, Profile.tokens], 
+            batch_size=50
+        )
 
-    contributors_list = "\n".join([f"<@{k}> - {v} clicks, {round(v * multiplier)} tokens" for k, v in sorted(contributors[channel_id].items(), key=lambda item: item[1], reverse=True)])
+    # Construct contributors_list with singular/plural check
+    contributors_list = "\n".join([
+        f"<@{k}> - {v} click{'s' if v != 1 else ''}, {round(v * multiplier)} token{'s' if round(v * multiplier) != 1 else ''}" 
+        for k, v in sorted(contributors[channel_id].items(), key=lambda item: item[1], reverse=True)
+    ])
+
     try:
-        await coal_save.edit(content=f":pick: Coal mined successfully! It took {round(time.time() - start[channel_id])} seconds! These people helped:\n{contributors_list}")
+        await coal_save.edit(
+            content=f":pick: Coal mined successfully! It took {round(time.time() - start[channel_id])} seconds! These people helped:\n{contributors_list}"
+        )
     except Exception:
         # yk i hate you
         pass
+    
     return coal_save.channel
 
 
