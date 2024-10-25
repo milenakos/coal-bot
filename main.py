@@ -95,7 +95,16 @@ async def finish_mining(channel_id):
     with db.atomic():
         Profile.bulk_update(to_save, fields=[Profile.contributions, Profile.clicks, Profile.tokens], batch_size=50)
 
-    contributors_list = "\n".join([f"<@{k}> - {v} clicks, {round(v * multiplier)} tokens" for k, v in sorted(contributors[channel_id].items(), key=lambda item: item[1], reverse=True)])
+    click_s_or_no = "s" #rename if you want i dont care im tired
+    token_s_or_no = "s"
+
+    if (v == 1):
+        click_s_or_no = ""
+        if (multiplier == 1): # 1 x 1 = 1 i think
+            token_s_or_no = ""
+        
+
+    contributors_list = "\n".join([f"<@{k}> - {v} click{click_s_or_no}, {round(v * multiplier)} token{token_s_or_no}" for k, v in sorted(contributors[channel_id].items(), key=lambda item: item[1], reverse=True)])
     try:
         await coal_save.edit(content=f":pick: Coal mined successfully! It took {round(time.time() - start[channel_id])} seconds! These people helped:\n{contributors_list}")
     except Exception:
