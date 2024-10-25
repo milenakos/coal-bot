@@ -2,6 +2,7 @@ import asyncio
 import os
 import random
 import time
+import json
 from typing import Optional, Literal
 
 import discord
@@ -39,25 +40,35 @@ bot = CleanupClient(command_prefix="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 counter = {}
 contributors = {}
 coal_msg = {}
+coal_types = {}
 start = {}
 last_update_time = {}
+
+with open("minerals.json", "r") as f:
+    minerals = json.load(f)
+
+coal_options = []
+for k, v in minerals.items():
+    coal_options.extend([k] * v["chance"])
 
 on_ready_debounce = False
 last_loop_time = time.time()
 
 async def spawn_coal(channel):
-    global counter, contributors, coal_msg, start, last_update_time
+    global counter, contributors, coal_msg, start, last_update_time, coal_types
     if not channel or coal_msg.get(channel.id, None):
         return
     ch = Channel.get(channel.id)
     ch.yet_to_spawn = 0
     ch.save()
+    coal_type = random.choice(coal_options)
     start[channel.id] = time.time()
-    counter[channel.id] = round(random.randint(250, 750) * ch.hardness_multipler)
+    counter[channel.id] = round(random.randint(250, 750) * ch.hardness_multipler * minerals[coal_type]["hp"])
     contributors[channel.id] = {}
+    coal_types[channel.id] = coal_type
     last_update_time[channel.id] = time.time()
     try:
-        coal_msg[channel.id] = await channel.send(f"<@&1294332417301286912> <:coal:1294300130014527498> A wild coal has appeared! Spam :pick: reaction to mine it! ({counter[channel.id]})")
+        coal_msg[channel.id] = await channel.send(f"<@&1294332417301286912> <:coal:1294300130014527498> A wild {coal_type} has appeared! Spam :pick: reaction to mine it! ({counter[channel.id]})")
     except Exception:
         # fuck you
         ch.delete_instance()
@@ -65,11 +76,12 @@ async def spawn_coal(channel):
 
 
 async def finish_mining(channel_id):
-    global coal_msg
+    global coal_msg, coal_types
     coal_save = coal_msg[channel_id]
     if not isinstance(coal_save, discord.Message):
         return
     coal_msg[channel_id] = None
+    multiplier = minerals[coal_types[channel_id]]["value"]
 
     to_save = []
 
@@ -77,13 +89,13 @@ async def finish_mining(channel_id):
         user, _ = Profile.get_or_create(guild_id=coal_save.guild.id, user_id=user_id)
         user.contributions += 1
         user.clicks += amount
-        user.tokens += amount
+        user.tokens += round(amount * multiplier)
         to_save.append(user)
 
     with db.atomic():
         Profile.bulk_update(to_save, fields=[Profile.contributions, Profile.clicks, Profile.tokens], batch_size=50)
 
-    contributors_list = "\n".join([f"<@{k}> - {v}" for k, v in sorted(contributors[channel_id].items(), key=lambda item: item[1], reverse=True)])
+    contributors_list = "\n".join([f"<@{k}> - {v} clicks, {round(v * multiplier)} tokens" for k, v in sorted(contributors[channel_id].items(), key=lambda item: item[1], reverse=True)])
     try:
         await coal_save.edit(content=f":pick: Coal mined successfully! It took {round(time.time() - start[channel_id])} seconds! These people helped:\n{contributors_list}")
     except Exception:
@@ -109,7 +121,7 @@ async def mine(payload):
         return
 
     last_update_time[payload.channel_id] = time.time()
-    await coal_msg[payload.channel_id].edit(content=f"<:coal:1294300130014527498> A wild coal has appeared! Spam :pick: reaction to mine it! ({counter[payload.channel_id]})")
+    await coal_msg[payload.channel_id].edit(content=f"<:coal:1294300130014527498> A wild {coal_types[payload.channel_id]} has appeared! Spam :pick: reaction to mine it! ({counter[payload.channel_id]})")
 
 
 @bot.tree.command(description="(ADMIN) Setup a mine channel")
@@ -134,6 +146,7 @@ async def forget(message: discord.Interaction):
         counter.pop(channel.channel_id, None)
         contributors.pop(channel.channel_id, None)
         last_update_time.pop(channel.channel_id, None)
+        coal_types.pop(channel.channel_id, None)
         await message.response.send_message(f"ok, now <#{message.channel.id}> is no longer a mine")
     else:
         await message.response.send_message("your an idiot there is literally no mine setupped in this channel you stupid")

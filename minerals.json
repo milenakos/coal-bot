@@ -1,0 +1,17 @@
+{
+  "Coal": {"hp": 1.0, "value": 1, "chance": 1000},
+  "Copper": {"hp": 1.2, "value": 2, "chance": 400},
+  "Iron": {"hp": 1.3, "value": 3, "chance": 300},
+  "Sapphire": {"hp": 1.5, "value": 4, "chance": 200},
+  "Amethyst": {"hp": 1.7, "value": 5, "chance": 100},
+  "Aquamarine": {"hp": 2.0, "value": 6, "chance": 70},
+  "Ruby": {"hp": 2.2, "value": 7, "chance": 60},
+  "Platinum": {"hp": 2.5, "value": 8, "chance": 50},
+  "Gold": {"hp": 3.0, "value": 10, "chance": 30},
+  "Emerald": {"hp": 4.0, "value": 12, "chance": 20},
+  "Diamond": {"hp": 5.0, "value": 15, "chance": 15},
+  "Obsidian": {"hp": 7.0, "value": 20, "chance": 10},
+  "Cat": {"hp": 9.0, "value": 25, "chance": 5},
+  "Uranium": {"hp": 9.5, "value": 30, "chance": 2},
+  "Enriched Uranium": {"hp": 10.0, "value": 35, "chance": 1}
+}
