@@ -101,7 +101,7 @@ async def finish_mining(channel_id):
 
     contributors_list = "\n".join([f"<@{k}> - {v} clicks, {round(v * multiplier)} tokens" for k, v in sorted(contributors[channel_id].items(), key=lambda item: item[1], reverse=True)])
     try:
-        await coal_save.edit(content=f":pick: Coal mined successfully! It took {round(time.time() - start[channel_id])} seconds! These people helped:\n{contributors_list}")
+        await coal_save.edit(content=f":pick: {coal_types[channel_id]} mined successfully! It took {round(time.time() - start[channel_id])} seconds! These people helped:\n{contributors_list}")
     except Exception:
         # yk i hate you
         pass
