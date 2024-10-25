@@ -24,8 +24,12 @@ class CleanupClient(commands.AutoShardedBot):
 
     async def close(self):
         for i in coal_msg.values():
-            if i:
-                await finish_mining(i.channel.id)
+            try:
+                if i:
+                    # i hate how nested this is but i dont think i can do anything about it
+                    await finish_mining(i.channel.id)
+            except Exception:
+                pass
 
         await super().close()
 
