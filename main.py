@@ -259,6 +259,10 @@ async def shop(message):
             await interaction.response.send_message("You dont have enough tokens to buy this pickaxe!", ephemeral=True)
             return
 
+        if len(profile.inventory) >= 23:
+            await interaction.response.send_message("You cant buy any more pickaxes!", ephemeral=True)
+            return
+
         profile.tokens -= pickaxe["cost"]
         h = profile.inventory
         h.append({"id": interaction.data["custom_id"], "durability": pickaxe["durability"]})
@@ -273,7 +277,8 @@ async def shop(message):
         if v["cost"] <= 0:
             continue
         embed.add_field(name=v['name'], value=f"{v['durability']} durability\n{v['desc']}\n**{v['cost']} tokens**", inline=True)
-        b = Button(label=v['name'], style=ButtonStyle.blurple, custom_id=k)
+        emoji, name = v['name'].split(" ")
+        b = Button(label=name, emoji=emoji, style=ButtonStyle.blurple, custom_id=k)
         b.callback = pickaxe_handler
         view.add_item(b)
 
