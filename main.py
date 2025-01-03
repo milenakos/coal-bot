@@ -275,7 +275,9 @@ async def shop(message):
         if v["cost"] <= 0:
             continue
         embed.add_field(name=v['name'], value=f"{v['durability']} durability\n{v['desc']}\n**{v['cost']} tokens**", inline=True)
-        view.add_item(Button(label=v['name'], style=ButtonStyle.blurple, custom_id=k))
+        b = Button(label=v['name'], style=ButtonStyle.blurple, custom_id=k)
+        b.callback = pickaxe_handler
+        view.add_item(b)
 
     await message.response.send_message(embed=embed, view=view)
 
