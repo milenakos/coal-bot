@@ -1,8 +1,9 @@
 import os
 
 import peewee
+import playhouse.postgres_ext
 
-db = peewee.PostgresqlDatabase(
+db = playhouse.postgres_ext.PostgresqlExtDatabase(
     'coal_bot',
     user='coal_bot',
     password=os.environ["COAL_PASS"],
@@ -32,6 +33,8 @@ class Profile(peewee.Model):
     contributions = peewee.IntegerField(default=0)
 
     pickaxe = peewee.CharField(default="Normal")
+
+    inventory = peewee.BinaryJSONField(default={})
 
     class Meta:
         # haha facebook meta reference

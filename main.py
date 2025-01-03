@@ -6,7 +6,6 @@ import json
 from typing import Optional, Literal
 
 import discord
-import peewee
 from discord import ButtonStyle
 from discord.ext import commands
 from discord.ui import Button, View
@@ -41,6 +40,7 @@ bot = CleanupClient(command_prefix="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
                     help_command=None,
                     chunk_guilds_at_startup=False)
 
+
 counter = {}
 contributors = {}
 coal_msg = {}
@@ -48,12 +48,18 @@ coal_types = {}
 start = {}
 last_update_time = {}
 
+
 with open("minerals.json", "r") as f:
     minerals = json.load(f)
 
 coal_options = []
 for k, v in minerals.items():
     coal_options.extend([k] * v["chance"])
+
+
+with open("pickaxes.json", "r") as f:
+    pickaxes = json.load(f)
+
 
 on_ready_debounce = False
 last_loop_time = time.time()
@@ -198,20 +204,36 @@ async def eat(message):
     await message.response.send_message(f"You eat a coal token. Yum!\nYou now have {profile.tokens} tokens remaining.")
 
 
-@bot.tree.command(description="View a profile!")
-async def profile(message, user: Optional[discord.User]):
+@bot.tree.command(description="View an inventory!")
+async def inventory(message, user: Optional[discord.User]):
     if not user:
         user = message.user
 
     profile, _ = Profile.get_or_create(guild_id=message.guild.id, user_id=user.id)
     embed = discord.Embed(
         title=f"{profile.tokens} tokens",
-        description=f"**Pickaxe**: {profile.pickaxe}\n\nTotal clicks: {profile.clicks}\nTotal contributions: {profile.contributions}",
+        description=f"Total clicks: {profile.clicks}\nTotal contributions: {profile.contributions}",
         color=0x4C88BB
     ).set_author(
         name=str(user),
         icon_url=user.avatar.url
     )
+
+    if profile.pickaxe == "Normal":
+        embed.add_field(name="⛏️ Normal (Selected)", value="Infinite durability left\nNo extra stats.", inline=True)
+    else:
+        pickaxe = pickaxes[profile.pickaxe]
+        picked = profile.inventory[profile.pickaxe]
+        embed.add_field(name=f"{pickaxe['name']} (Selected)", value=f"{picked['durability']} durability left\n{pickaxe['desc']}", inline=True)
+
+    for k, v in profile.inventory.items():
+        if k == profile.pickaxe:
+            continue
+        pickaxe = pickaxes[k]
+        embed.add_field(name=pickaxe['name'], value=f"{v['durability']} durability left\n{pickaxe['desc']}", inline=True)
+
+    if profile.pickaxe != "Normal":
+        embed.add_field(name="⛏️ Normal", value="Infinite durability left\nNo extra stats.", inline=True)
 
     await message.response.send_message(embed=embed)
 
