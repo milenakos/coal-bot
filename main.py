@@ -278,7 +278,7 @@ async def shop(message):
             continue
         embed.add_field(name=v['name'], value=f"{v['durability']} durability\n{v['desc']}\n**{v['cost']} tokens**", inline=True)
         emoji, name = v['name'].split(" ")
-        b = Button(label=name, emoji=emoji, style=ButtonStyle.blurple, custom_id=k)
+        b = Button(label=name, emoji=emoji[1:-1], style=ButtonStyle.blurple, custom_id=k)
         b.callback = pickaxe_handler
         view.add_item(b)
 
