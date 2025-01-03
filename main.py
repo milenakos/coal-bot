@@ -429,15 +429,7 @@ async def on_raw_reaction_remove(payload):
 @bot.event
 async def on_raw_reaction_add(payload):
     if coal_msg.get(payload.channel_id, False) and payload.message_id == coal_msg[payload.channel_id].id and payload.user_id != bot.user.id:
-        if str(payload.emoji) == "⛏":
-            await mine(payload)
-        else:
-            channel = bot.get_channel(payload.channel_id)
-            if not isinstance(channel, discord.TextChannel):
-                return
-            message = await channel.fetch_message(payload.message_id)
-
-            await message.clear_reaction(payload.emoji)
+        await mine(payload)
 
 
 @bot.event
