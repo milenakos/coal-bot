@@ -247,8 +247,6 @@ async def shop(message):
     )
 
     async def pickaxe_handler(interaction):
-        await interaction.response.defer()
-
         if interaction.user != message.user:
             await interaction.response.send_message("Visit the shop on your own!", ephemeral=True)
             return
