@@ -34,7 +34,7 @@ class Profile(peewee.Model):
 
     pickaxe = peewee.CharField(default="Normal")
 
-    inventory = playhouse.postgres_ext.BinaryJSONField(default={})
+    inventory = playhouse.postgres_ext.BinaryJSONField(default=[])
 
     class Meta:
         # haha facebook meta reference

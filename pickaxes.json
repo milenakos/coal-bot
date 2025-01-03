@@ -1,1 +1,5 @@
-{}
+{
+  "stone": {"durability": 1000, "cost": 1000, "name": ":pick: Stone", "description": "1.2x tokens."},
+  "gambling": {"durability": 10, "cost": 3000, "name": ":slot_machine: Gambling", "description": "Gives anywhere between 0-500 tokens on every use."},
+  "ruby": {"durability": 300, "cost": 10000, "name": ":red_circle: Ruby", "description": "1.5x tokens on anything rarer than Ruby."}
+}

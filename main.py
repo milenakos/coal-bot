@@ -222,20 +222,62 @@ async def inventory(message, user: Optional[discord.User]):
     if profile.pickaxe == "Normal":
         embed.add_field(name="⛏️ Normal (Selected)", value="Infinite durability left\nNo extra stats.", inline=True)
     else:
-        pickaxe = pickaxes[profile.pickaxe]
         picked = profile.inventory[profile.pickaxe]
+        pickaxe = pickaxes[picked["id"]]
         embed.add_field(name=f"{pickaxe['name']} (Selected)", value=f"{picked['durability']} durability left\n{pickaxe['desc']}", inline=True)
 
-    for k, v in profile.inventory.items():
+    for k, v in enumerate(profile.inventory):
         if k == profile.pickaxe:
             continue
-        pickaxe = pickaxes[k]
+        pickaxe = pickaxes[v["id"]]
         embed.add_field(name=pickaxe['name'], value=f"{v['durability']} durability left\n{pickaxe['desc']}", inline=True)
 
     if profile.pickaxe != "Normal":
         embed.add_field(name="⛏️ Normal", value="Infinite durability left\nNo extra stats.", inline=True)
 
     await message.response.send_message(embed=embed)
+
+
+@bot.tree.command(description="View the pickaxe shop")
+async def shop(message):
+    embed = discord.Embed(
+        title="Shop",
+        description="Click on the items to buy them!",
+        color=0x4C88BB
+    )
+
+    async def pickaxe_handler(interaction):
+        await interaction.response.defer()
+
+        if interaction.user != message.user:
+            await interaction.response.send_message("Visit the shop on your own!", ephemeral=True)
+            return
+
+        profile, _ = Profile.get_or_create(guild_id=message.guild.id, user_id=interaction.user.id)
+
+        pickaxe = pickaxes[interaction.data["custom_id"]]
+
+        if pickaxe["cost"] > profile.tokens:
+            await interaction.response.send_message("You dont have enough tokens to buy this pickaxe!", ephemeral=True)
+            return
+
+        profile.tokens -= pickaxe["cost"]
+        h = profile.inventory
+        h.append({"id": interaction.data["custom_id"], "durability": pickaxe["durability"]})
+        profile.inventory = h
+        profile.save()
+
+        await interaction.response.send_message(f"You have bought the {pickaxe['name']} pickaxe!", ephemeral=True)
+
+    view = View()
+
+    for k, v in pickaxes.items():
+        if v["cost"] <= 0:
+            continue
+        embed.add_field(name=v['name'], value=f"{v['durability']} durability\n{v['desc']}\n**{v['cost']} tokens**", inline=True)
+        view.add_item(Button(label=v['name'], style=ButtonStyle.blurple, custom_id=k))
+
+    await message.response.send_message(embed=embed, view=view)
 
 
 @bot.tree.command(description="View the leaderboards")
