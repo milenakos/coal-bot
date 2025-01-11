@@ -13,6 +13,7 @@ from discord.ui import Button, View
 
 from database import Channel, Profile, db
 
+winuvloop.install()
 
 class CleanupClient(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
