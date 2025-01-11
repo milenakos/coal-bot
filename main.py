@@ -6,15 +6,12 @@ import json
 from typing import Optional, Literal
 
 import discord
+import winuvloop
 from discord import ButtonStyle
 from discord.ext import commands
 from discord.ui import Button, View
 
 from database import Channel, Profile, db
-
-if os.name != "nt":
-    import uvloop
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 
 class CleanupClient(commands.AutoShardedBot):
